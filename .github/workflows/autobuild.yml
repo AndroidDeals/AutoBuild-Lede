@@ -43,19 +43,19 @@ jobs:
         REPO_URL: https://github.com/coolsnowwolf/lede
         REPO_BRANCH: master
       run: git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
-       
+
+    - name: 克隆Vssr源码
+      run: |
+        cd openwrt/package/lean
+        #git lua-maxminddb 依赖
+        git clone https://github.com/jerrykuku/lua-maxminddb.git  
+        git clone https://github.com/jerrykuku/luci-app-vssr.git 
+
     - name: Update & Install feeds
       working-directory: ./openwrt
       run: |
         ./scripts/feeds update -a
         ./scripts/feeds install -a
-        
-    - name: 克隆第三方源码
-      working-directory: ./openwrt
-      run: |
-        git clone https://github.com/jerrykuku/lua-maxminddb.git  #git lua-maxminddb 依赖
-        git clone https://github.com/jerrykuku/luci-app-vssr.git 
-        # git clone https://github.com/fw876/helloworld package/ssrplus  
 
     - name: 自定义插件选项
       env:
