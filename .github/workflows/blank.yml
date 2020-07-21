@@ -1,0 +1,85 @@
+#=================================================
+# Description: Build OpenWrt using GitHub Actions
+# Lisence: MIT
+# Author: AndroidDeals
+#=================================================
+
+name: X86_64固件
+
+on: 
+  release:
+    types: [published]
+  # push:
+  #  branches: 
+  #    - master
+  # schedule:
+  #  - cron: 0 0 */11 * *
+  watch:
+    types: [started] #每点一次小星星开始编译
+
+jobs:
+  build_openwrt:
+    runs-on: ubuntu-18.04
+    if: github.event.repository.owner.id == github.event.sender.id
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+
+    - name: 构建编译环境
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        docker rmi `docker images -q`
+        sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d
+        sudo -E apt-get -y purge azure-cli ghc* zulu* hhvm llvm* firefox google* dotnet* powershell openjdk* mysql* php*
+        sudo -E apt-get update
+        sudo -E apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3.5 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler g++-multilib antlr3 gperf
+        sudo -E apt-get -y autoremove --purge
+        sudo -E apt-get clean
+        
+    - name: 克隆lede源码
+      env: 
+        REPO_URL: https://github.com/coolsnowwolf/lede
+        REPO_BRANCH: master
+      run: git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
+       
+    - name: Update & Install feeds
+      working-directory: ./openwrt
+      run: |
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+        
+    - name: 克隆第三方源码
+      working-directory: ./openwrt
+      run: |
+        git clone https://github.com/jerrykuku/lua-maxminddb.git  #git lua-maxminddb 依赖
+        git clone https://github.com/jerrykuku/luci-app-vssr.git 
+        # git clone https://github.com/fw876/helloworld package/ssrplus  
+
+    - name: 自定义插件选项
+      env:
+        CONFIG_FILE: '.config' #文件在主目录，可以根据自己需要修改
+      run: |
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+        chmod +x ./customize.sh && ./customize.sh
+        cd openwrt && make defconfig
+
+    - name: 下载包文件
+      working-directory: ./openwrt
+      run: |
+        make download -j$(nproc)
+        find dl -size -1024c -exec ls -l {} \;
+        find dl -size -1024c -exec rm -f {} \;
+
+    - name: 编译打包
+      working-directory: ./openwrt
+      run: |
+        echo -e "$(nproc) thread build."
+        make -j$(nproc) || make -j1 V=s
+        
+    - name : 上传最终成果
+      uses: actions/upload-artifact@master
+      with:
+        name: OpenWrt-AndoridDeals
+        path: openwrt/bin
