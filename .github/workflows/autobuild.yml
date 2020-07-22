@@ -57,7 +57,7 @@ jobs:
         
     - name: 克隆丑化主题源码
       run: |
-        cd lede/package/lean  
+        cd openwrt/package/lean  
         rm -rf luci-theme-argon  
         git clone -b 18.06 https://github.com/jerrykuku/luci-theme-argon.git
         
