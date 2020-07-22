@@ -54,7 +54,13 @@ jobs:
       working-directory: ./openwrt
       run: |
         git clone https://github.com/Lienol/openwrt-package package/lienol      
-
+        
+    - name: 克隆丑化主题源码
+      run: |
+        cd lede/package/lean  
+        rm -rf luci-theme-argon  
+        git clone -b 18.06 https://github.com/jerrykuku/luci-theme-argon.git
+        
     - name: 自定义插件选项
       env:
         CONFIG_FILE: '.config' #文件在主目录，可以根据自己需要修改
@@ -76,8 +82,8 @@ jobs:
         echo -e "$(nproc) thread build."
         make -j$(nproc) || make -j1 V=s
         
-    - name : 上传最终成果
+    - name : 上传最终成果到位置
       uses: actions/upload-artifact@master
       with:
-        name: OpenWrt-AndoridDeals
+        name: OpenWrt-by-AndoridDeals
         path: openwrt/bin
