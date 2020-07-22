@@ -50,11 +50,10 @@ jobs:
         ./scripts/feeds update -a
         ./scripts/feeds install -a
         
-    - name: 克隆Vssr源码
+    - name: 克隆PassWall源码
+      working-directory: ./openwrt
       run: |
-        cd openwrt/package/lean
-        git clone https://github.com/jerrykuku/lua-maxminddb.git   #git lua-maxminddb 依赖
-        git clone https://github.com/jerrykuku/luci-app-vssr.git         
+        git clone https://github.com/Lienol/openwrt-package package/lienol      
 
     - name: 自定义插件选项
       env:
