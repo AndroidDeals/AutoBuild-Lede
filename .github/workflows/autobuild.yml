@@ -23,7 +23,7 @@ jobs:
     if: github.event.repository.owner.id == github.event.sender.id
 
     steps:
-    - name: Checkout
+    - name: 检查
       uses: actions/checkout@master
 
     - name: 构建编译环境
@@ -44,18 +44,17 @@ jobs:
         REPO_BRANCH: master
       run: git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
 
-    - name: 克隆Vssr源码
-      run: |
-        cd openwrt/package/lean
-        #git lua-maxminddb 依赖
-        git clone https://github.com/jerrykuku/lua-maxminddb.git  
-        git clone https://github.com/jerrykuku/luci-app-vssr.git 
-
     - name: Update & Install feeds
       working-directory: ./openwrt
       run: |
         ./scripts/feeds update -a
         ./scripts/feeds install -a
+        
+    - name: 克隆Vssr源码
+      run: |
+        cd openwrt/package/lean
+        git clone https://github.com/jerrykuku/lua-maxminddb.git   #git lua-maxminddb 依赖
+        git clone https://github.com/jerrykuku/luci-app-vssr.git         
 
     - name: 自定义插件选项
       env:
