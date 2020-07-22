@@ -50,10 +50,12 @@ jobs:
         ./scripts/feeds update -a
         ./scripts/feeds install -a
         
-    - name: 克隆PassWall源码
+    - name: 克隆第三方插件源码
       working-directory: ./openwrt
       run: |
-        git clone https://github.com/Lienol/openwrt-package package/lienol      
+        git clone https://github.com/Lienol/openwrt-package package/lienol 
+        git clone https://github.com/jefferymvp/luci-app-koolproxyR package/koolproxyR
+     
         
     - name: 克隆丑化主题源码
       run: |
