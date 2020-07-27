@@ -54,9 +54,8 @@ jobs:
       working-directory: ./openwrt
       run: |
         git clone https://github.com/Lienol/openwrt-package package/lienol 
-        git clone https://github.com/AndroidDeals/luci-app-koolproxyR package/koolproxyR
+        git clone https://github.com/jefferymvp/luci-app-koolproxyR package/koolproxyR
      
-        
     - name: 克隆丑化主题源码
       run: |
         cd openwrt/package/lean  
