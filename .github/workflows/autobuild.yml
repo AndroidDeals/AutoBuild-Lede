@@ -61,7 +61,7 @@ jobs:
       working-directory: ./openwrt
       run: |
         git clone https://github.com/jefferymvp/luci-app-koolproxyR package/koolproxyR
-        git clone https://github.com/fw876/helloworld package/ssrplus
+        #ssr源码git clone https://github.com/fw876/helloworld package/ssrplus
      
     - name: 丑化主题源码
       run: |
