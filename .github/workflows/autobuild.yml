@@ -91,6 +91,13 @@ jobs:
         echo -e "$(nproc) thread build."
         make -j$(nproc) || make -j1 V=s
         
+    - name: 组织固件
+      run: |
+        rm -rf ./Firmware/
+        mkdir -p ./Firmware/
+        find openwrt/bin/targets/ -name "*bin*" | xargs -i mv -f {} ./Firmware/
+        find openwrt/bin/targets/ -name "*img*" | xargs -i mv -f {} ./Firmware/    
+                
     - name : 上传最终成果到指定位置
       uses: actions/upload-artifact@master
       with:
