@@ -1,4 +1,4 @@
-# AutoBuild-Lede
+# AutoBuild-OpenWRT
 工作流代码来自[P3TERX](https://github.com/P3TERX/Actions-OpenWrt)
 
 这是一个比较精简的固件，选用的插件在 `.config`中，可以自己根据需要修改。
