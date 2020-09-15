@@ -71,7 +71,7 @@ jobs:
         
     - name: 自定义插件选项
       env:
-        CONFIG_FILE: 'vssr.config' #插件为 VSSR 自定义文件在主目录，可以根据自己需要修改
+        CONFIG_FILE: 'diy.config' #自定义文件在主目录，可以根据自己需要修改
       run: |
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
         chmod +x ./customize.sh && ./customize.sh
