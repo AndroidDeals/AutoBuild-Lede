@@ -50,12 +50,12 @@ jobs:
         ./scripts/feeds update -a
         ./scripts/feeds install -a
         
-    - name: Vssr源码
+    - name: VSSR源码
       run: |
         cd openwrt/package/lean
         #git lua-maxminddb 依赖
-        git clone https://github.com/jerrykuku/lua-maxminddb.git  
-        git clone https://github.com/jerrykuku/luci-app-vssr.git         
+        #git clone https://github.com/jerrykuku/lua-maxminddb.git  
+        #git clone https://github.com/jerrykuku/luci-app-vssr.git         
         
     - name: 第三方插件源码
       working-directory: ./openwrt
