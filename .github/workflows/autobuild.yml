@@ -58,11 +58,8 @@ jobs:
         
     - name: 第三方插件源码
       working-directory: ./openwrt
-      run: | 
-      # koolproxyR Plus+源码       
-        git clone https://github.com/jefferymvp/luci-app-koolproxyR package/koolproxyR 
-        
-      # SSR Plus源码      
+      run: |              
+        git clone https://github.com/jefferymvp/luci-app-koolproxyR package/koolproxyR  #koolproxyR Plus+源码
       # git clone https://github.com/fw876/helloworld package/ssrplus #ssrplus源码
      
     - name: 丑化主题源码
