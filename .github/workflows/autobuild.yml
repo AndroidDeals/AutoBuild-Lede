@@ -50,19 +50,20 @@ jobs:
         ./scripts/feeds update -a
         ./scripts/feeds install -a
         
-    # - name: VSSR源码
-    #   run: |
-    #     cd openwrt/package/lean
-        # git lua-maxminddb 依赖
-        # git clone https://github.com/jerrykuku/lua-maxminddb.git  
-        # git clone https://github.com/jerrykuku/luci-app-vssr.git         
+    - name: VSSR源码
+      run: |
+        cd openwrt/package/lean
+        git clone https://github.com/jerrykuku/lua-maxminddb.git  
+        git clone https://github.com/jerrykuku/luci-app-vssr.git         
         
     - name: 第三方插件源码
       working-directory: ./openwrt
-      run: |
-        git clone https://github.com/xiaorouji/openwrt-package package/lienol  # passwall源码
-        git clone https://github.com/jefferymvp/luci-app-koolproxyR package/koolproxyR  # 广告屏蔽大师源码
-      # git clone https://github.com/fw876/helloworld package/ssrplus # ssrplus源码
+      run: | 
+      # koolproxyR Plus+源码       
+        git clone https://github.com/jefferymvp/luci-app-koolproxyR package/koolproxyR 
+        
+      # SSR Plus源码      
+      # git clone https://github.com/fw876/helloworld package/ssrplus #ssrplus源码
      
     - name: 丑化主题源码
       run: |
@@ -103,5 +104,5 @@ jobs:
     - name : 上传最终成果到指定位置
       uses: actions/upload-artifact@master
       with:
-        name: OpenWrt-by-AndoridDeals
+        name: OpenWrt-by-zcw
         path: openwrt/bin
