@@ -50,12 +50,13 @@ jobs:
         ./scripts/feeds update -a
         ./scripts/feeds install -a
         
-    - name: VSSR源码
+    - name: Jerrykuku插件源码
       run: |
         cd openwrt/package/lean
         git clone https://github.com/jerrykuku/lua-maxminddb.git  
-        git clone https://github.com/jerrykuku/luci-app-vssr.git         
-        
+        git clone https://github.com/jerrykuku/luci-app-vssr.git #VSSR源码
+        git clone https://github.com/jerrykuku/luci-app-jd-dailybonus.git   #京豆签到源码           
+
     - name: 第三方插件源码
       working-directory: ./openwrt
       run: |              
@@ -89,7 +90,7 @@ jobs:
         echo -e "$(nproc) thread build."
         make -j$(nproc) || make -j1 V=s
         
-    - name: 组织固件
+    - name: 提取固件
       run: |
         rm -rf ./Firmware/
         mkdir -p ./Firmware/
