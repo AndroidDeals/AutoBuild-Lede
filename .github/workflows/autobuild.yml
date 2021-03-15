@@ -54,13 +54,13 @@ jobs:
       run: |
         cd openwrt/package/lean
         git clone https://github.com/jerrykuku/lua-maxminddb.git  
+        git clone https://github.com/jerrykuku/luci-app-vssr.git
         git clone https://github.com/jerrykuku/luci-app-jd-dailybonus.git   #京豆签到源码           
 
     - name: 第三方插件源码
       working-directory: ./openwrt
       run: |              
         git clone https://github.com/jefferymvp/luci-app-koolproxyR package/koolproxyR   
-        git clone https://github.com/fw876/helloworld package/ssrplus  
      
     - name: 丑化主题源码
       run: |
