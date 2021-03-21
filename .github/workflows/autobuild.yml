@@ -74,30 +74,19 @@ jobs:
         chmod +x ./customize.sh && ./customize.sh
         cd openwrt && make defconfig
 
-    - name: 下载包文件
+    - name: Download package
       working-directory: ./openwrt
       run: |
         make download -j$(nproc)
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
-
-    - name: 编译打包
+    - name: Build firmware
       working-directory: ./openwrt
       run: |
         echo -e "$(nproc) thread build."
-        make -j$(nproc) || make -j1 V=s
-        
-    - name: 提取固件
-      run: |
-        rm -rf ./Firmware/
-        mkdir -p ./Firmware/
-        find openwrt/bin/targets/ -name "*kernel*" | xargs -i mv -f {} ./Firmware/
-        find openwrt/bin/targets/ -name "*efi*" | xargs -i mv -f {} ./Firmware/  
-        find openwrt/bin/targets/ -name "*rootfs*" | xargs -i mv -f {} ./Firmware/ 
-        find openwrt/bin/targets/ -name "*packages*" | xargs -i mv -f {} ./Firmware/  
-                
-    - name : 上传最终成果到指定位置
+        make -j$(nproc) V=s
+    - name : Upload artifact
       uses: actions/upload-artifact@master
       with:
-        name: OpenWrt-by-zcw
+        name: OpenWrt
         path: openwrt/bin
