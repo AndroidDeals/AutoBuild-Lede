@@ -76,20 +76,21 @@ jobs:
         cd openwrt && make defconfig
 
     - name: Download package
-      working-directory: ./openwrt
       run: |
+        cd openwrt
         make download -j$(nproc)
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
         
     - name: Build firmware
-      working-directory: ./openwrt
       run: |
+        cd openwrt
         echo -e "$(nproc) thread build."
-        make -j$(nproc) || make -j1 V=s
+        make -j$(nproc) V=s
         
     - name : Upload artifact
-      uses: actions/upload-artifact@master
+      #uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@main
       with:
         name: OpenWrt
         path: openwrt/bin
