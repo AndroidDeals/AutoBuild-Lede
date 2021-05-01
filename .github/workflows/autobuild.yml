@@ -16,48 +16,33 @@ on:
   #  - cron: 0 0 */11 * *
   watch:
     types: [started] #每点一次小星星开始编译
-    
-env:
-  REPO_URL: https://github.com/coolsnowwolf/lede
-  REPO_BRANCH: master
-  FEEDS_CONF: feeds.conf.default
-  CONFIG_FILE: diy.config
-  DIY_P1_SH: customize.sh
-  UPLOAD_BIN_DIR: false
-  UPLOAD_FIRMWARE: true
-  UPLOAD_COWTRANSFER: true
-  UPLOAD_WETRANSFER: true
-  UPLOAD_RELEASE: false
-  TZ: Asia/Shanghai
 
 jobs:
-  build:
+  build_openwrt:
     runs-on: ubuntu-18.04
+    if: github.event.repository.owner.id == github.event.sender.id
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@main
+    - name: 检查
+      uses: actions/checkout@master
 
-    - name: Initialization environment
+    - name: 构建编译环境
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
-        sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
-        sudo -E apt-get -qq update
-        sudo -E apt-get -qq install $(curl -fsSL git.io/depends-ubuntu-1804)
-        sudo -E apt-get -qq autoremove --purge
-        sudo -E apt-get -qq clean
-        sudo timedatectl set-timezone "$TZ"
-        sudo mkdir -p /workdir
-        sudo chown $USER:$GROUPS /workdir
+        docker rmi `docker images -q`
+        sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d
+        sudo -E apt-get -y purge azure-cli ghc* zulu* hhvm llvm* firefox google* dotnet* powershell openjdk* mysql* php*
+        sudo -E apt-get update
+        sudo -E apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3.5 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler g++-multilib antlr3 gperf
+        sudo -E apt-get -y autoremove --purge
+        sudo -E apt-get clean
         
-    - name: Clone source code
-      working-directory: /workdir
-      run: |
-        df -hT $PWD
-        git clone $REPO_URL -b $REPO_BRANCH openwrt
-        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
-        
+    - name: 克隆lede源码
+      env: 
+        REPO_URL: https://github.com/coolsnowwolf/lede
+        REPO_BRANCH: master
+      run: git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
 
     - name: Update & Install feeds
       working-directory: ./openwrt
@@ -82,6 +67,14 @@ jobs:
         rm -rf luci-theme-argon  
         git clone -b 18.06 https://github.com/jerrykuku/luci-theme-argon.git
         
+    - name: 自定义插件选项
+      env:
+        CONFIG_FILE: 'diy.config' #自定义文件在主目录，可以根据自己需要修改
+      run: |
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+        chmod +x ./customize.sh && ./customize.sh
+        cd openwrt && make defconfig
+        
     - name: Download package
       id: package
       run: |
@@ -90,6 +83,7 @@ jobs:
         make download -j8
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
+        
     - name: Compile the firmware
       id: compile
       run: |
@@ -100,6 +94,7 @@ jobs:
         grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
         [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
         echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+        
     - name: Check space usage
       if: (!cancelled())
       run: df -hT
