@@ -32,7 +32,7 @@ jobs:
 
     steps:
     - name: WeChat notification #微信推送
-      run: curl https://sctapi.ftqq.com/${{ secrets.ServerChan }}.send?text=${{ env.FILE_NAME }}开始编译
+      run: curl "https://sctapi.ftqq.com/${{ secrets.ServerChan }}.send?text=${{ env.FILE_NAME }}开始编译"
     
     - name: Checkout
       uses: actions/checkout@master
@@ -152,4 +152,4 @@ jobs:
         
     - name: wechat notification
       if:  steps.organize.outputs.status == 'success' && !cancelled()
-      run: curl https://sctapi.ftqq.com/${{ secrets.ServerChan }}.send?text=恭喜主人${{ env.FILE_NAME }}固件编译成功！
+      run: curl "https://sctapi.ftqq.com/${{ secrets.ServerChan }}.send?text=恭喜主人${{ env.FILE_NAME }}固件编译成功！"
