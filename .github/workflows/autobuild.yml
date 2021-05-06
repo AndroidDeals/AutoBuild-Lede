@@ -23,6 +23,7 @@ env:
   UPLOAD_COWTRANSFER: true
   UPLOAD_WETRANSFER: true
   UPLOAD_RELEASE: false
+  FILE_NAME: 自用养老版
   TZ: Asia/Shanghai
 
 jobs:
@@ -144,4 +145,8 @@ jobs:
         curl -fsSL git.io/file-transfer | sh
         ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
         echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
-        echo "::set-output name=url::$(cat wetransfer.log | grep https | cut -f3 -d" ")"     
+        echo "::set-output name=url::$(cat wetransfer.log | grep https | cut -f3 -d" ")"  
+        
+    - name: wechat notification
+      if:  steps.organize.outputs.status == 'success' && !cancelled()
+      run: curl https://sctapi.ftqq.com/SCT36291THnIsIYK8GwhBPtu8HdPb2DY1.send?text=恭喜主人${{ env.FILE_NAME }}固件编译成功！
