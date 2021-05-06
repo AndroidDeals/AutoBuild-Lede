@@ -16,6 +16,14 @@ on:
   #  - cron: 0 0 */11 * *
   watch:
     types: [started] #每点一次小星星开始编译
+    
+env:
+  UPLOAD_BIN_DIR: true
+  UPLOAD_FIRMWARE: true
+  UPLOAD_COWTRANSFER: true
+  UPLOAD_WETRANSFER: true
+  UPLOAD_RELEASE: false
+  TZ: Asia/Shanghai
 
 jobs:
   build:
@@ -69,7 +77,7 @@ jobs:
         ./scripts/feeds install -a
         ./scripts/feeds install -a
         
-    - name: Jerrykuku插件源码
+    - name: Jerrykuku source code
       run: |
         cd openwrt/package/lean  
         git clone https://github.com/jerrykuku/lua-maxminddb.git  #git lua-maxminddb 依赖
