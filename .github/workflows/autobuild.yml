@@ -150,6 +150,6 @@ jobs:
         echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
         echo "::set-output name=url::$(cat wetransfer.log | grep https | cut -f3 -d" ")"  
         
-    - name: wechat notification
+    - name: wechat notification #微信通知 请根据自己的实际情况配置。
       if:  steps.organize.outputs.status == 'success' && !cancelled()
-      run: curl "https://sctapi.ftqq.com/${{ secrets.ServerChan }}.send?text=恭喜主人${{ env.FILE_NAME }}固件编译成功！"
+      run: curl "https://sctapi.ftqq.com/${{ secrets.ServerChan }}.send?text=恭喜主人，您的- ${{ env.FILE_NAME }} -固件编译成功！"
