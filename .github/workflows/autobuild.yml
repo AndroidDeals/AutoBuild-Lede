@@ -128,12 +128,12 @@ jobs:
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "::set-output name=status::success"
         
-    - name: Upload bin directory
-      uses: actions/upload-artifact@main
-      if: steps.organize.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true' && !cancelled()
-      with:
-        name: OpenWrt-X86-64
-        path: openwrt/bin/targets/x86/64/bin.tar.gz
+   # - name: Upload bin directory
+      #uses: actions/upload-artifact@main
+      #if: steps.organize.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true' && !cancelled()
+     # with:
+       # name: OpenWrt-X86-64
+       # path: openwrt/bin/targets/x86/64/bin.tar.gz
 
     - name: Upload firmware directory
       uses: actions/upload-artifact@main
