@@ -122,7 +122,7 @@ jobs:
         echo "${{ env.useVersionInfo }}" > openwrt/bin/${{ env.DATE }}更新说明.md
         tar -zcvf bin.tar.gz openwrt/bin
         cp bin.tar.gz ./openwrt/bin/targets/x86/64/bin.tar.gz
-        cd openwrt/bin/targets/x86/64
+        cd openwrt/bin/targets/*/*
         rm -rf packages
         bzip2 *.img
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
@@ -139,7 +139,7 @@ jobs:
       uses: actions/upload-artifact@main
       if: env.UPLOAD_FIRMWARE == 'true' && steps.organize.outputs.status == 'success' && !cancelled()
       with:
-        name: lx64
+        name: X86_64
         path: ${{ env.FIRMWARE }}
 
     - name: Upload firmware to cowtransfer #奶牛快传
