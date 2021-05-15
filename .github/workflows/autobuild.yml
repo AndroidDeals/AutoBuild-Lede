@@ -102,7 +102,8 @@ jobs:
         cd openwrt
         echo -e "$(($(nproc) + 1)) thread compile"
         make -j$(($(nproc) + 1)) || make -j$(($(nproc) + 1)) || make -j1 V=s
-        echo "::set-output name=status::success"        
+        echo "::set-output name=status::success" 
+        
     - name: Check space usage
       if: (!cancelled())
       run: df -hT
@@ -114,24 +115,24 @@ jobs:
         echo "${{ env.useVersionInfo }}" > openwrt/bin/${{ env.DATE }}更新说明.md
         tar -zcvf bin.tar.gz openwrt/bin
         cp bin.tar.gz ./openwrt/bin/targets/x86/64/bin.tar.gz
-        cd openwrt/bin/targets/*/*
+        cd openwrt/bin/targets/x86/64
         rm -rf packages
         bzip2 *.img
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "::set-output name=status::success"
         
-   # - name: Upload bin directory
-      #uses: actions/upload-artifact@main
-      #if: steps.organize.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true' && !cancelled()
-     # with:
-       # name: OpenWrt-X86-64
-       # path: openwrt/bin/targets/x86/64/bin.tar.gz
+    - name: Upload bin directory
+      uses: actions/upload-artifact@main
+      if: steps.organize.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true' && !cancelled()
+      with:
+        name: OpenWrt-lx64
+        path: openwrt/bin/targets/x86/64/bin.tar.gz
 
     - name: Upload firmware directory
       uses: actions/upload-artifact@main
       if: env.UPLOAD_FIRMWARE == 'true' && steps.organize.outputs.status == 'success' && !cancelled()
       with:
-        name: X86_64
+        name: lx64
         path: ${{ env.FIRMWARE }}
 
     - name: Upload firmware to cowtransfer #奶牛快传
