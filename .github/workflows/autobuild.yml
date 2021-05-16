@@ -1,9 +1,3 @@
-#=================================================
-# Description: Build OpenWrt using GitHub Actions
-# Lisence: MIT
-# Author: AndroidDeals
-#=================================================
-
 name: X86_64固件
 
 on: 
@@ -16,15 +10,19 @@ on:
   #  - cron: 0 0 */11 * *
   watch:
     types: [started] #每点一次小星星开始编译
-    
+
 env:
+  REPO_URL: https://github.com/coolsnowwolf/lede
+  REPO_BRANCH: master
+  CONFIG_FILE: diy.config
+  DIY_SH: customize.sh
   UPLOAD_BIN_DIR: true
-  UPLOAD_FIRMWARE: true
-  UPLOAD_COWTRANSFER: true
+  UPLOAD_FIRMWARE: false
+  UPLOAD_RELEASE: true
   UPLOAD_WETRANSFER: true
-  UPLOAD_RELEASE: false
-  FILE_NAME: 自用养老版
+  UPLOAD_COWTRANSFER: true
   TZ: Asia/Shanghai
+  FILE_NAME: x64懒人版
 
 jobs:
   build:
@@ -32,7 +30,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@master
+      uses: actions/checkout@main
 
     - name: Initialization environment
       env:
@@ -47,17 +45,22 @@ jobs:
         sudo mkdir -p /workdir
         sudo chown $USER:$GROUPS /workdir
         
-    - name: Clone source code
-      env: 
-        REPO_URL: https://github.com/coolsnowwolf/lede
-        REPO_BRANCH: master
+    - name: Clone source code # 克隆源代码
+      id: source
+      working-directory: /workdir
       run: |
-        git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
+        df -hT $PWD
+        git clone $REPO_URL -b $REPO_BRANCH openwrt
+        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
         cd openwrt
         sed -i 's/#src-git helloworld/src-git helloworld/g' ./feeds.conf.default
         ./scripts/feeds update -a
         ./scripts/feeds install -a
-           
+        useVersionInfo=$(git show -s --date=short --format="编译前的最后一次[➦主源码](https://github.com/coolsnowwolf/lede)更新记录:<br/>更新人: %an<br/>更新时间: %cd<br/>更新内容: %s<br/>哈希值: %H")
+        echo "useVersionInfo=$useVersionInfo" >> $GITHUB_ENV
+        echo "DATE=$(date "+%Y年%m月%d日%H时%M分")" >> $GITHUB_ENV
+        echo "DATE1=$(date "+%Y.%m.%d")" >> $GITHUB_ENV
+        
     - name: Jerrykuku source code
       run: |
         cd openwrt/package/lean  
@@ -66,14 +69,17 @@ jobs:
         rm -rf luci-theme-argon  
         git clone -b 18.06 https://github.com/jerrykuku/luci-theme-argon.git
         
-    - name: Diy config
-      env:
-        CONFIG_FILE: 'diy.config' #自定义文件在主目录，可以根据自己需要修改
+    - name: Load custom configuration
       run: |
+        [ -e files ] && mv files openwrt/files
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
-        chmod +x ./customize.sh && ./customize.sh
-        cd openwrt && make defconfig
-        
+        chmod +x $DIY_SH
+        cd openwrt
+        $GITHUB_WORKSPACE/$DIY_SH
+        sed -i 's/OpenWrt/Bin AutoBuild ${{ env.DATE1 }} @ OpenWrt/g' package/lean/default-settings/files/zzz-default-settings
+        sed -i '/lede/ { s/org/org\/snapshots/g }' package/lean/default-settings/files/zzz-default-settings
+        sed -i '/openwrt_luci/ { s/sed/# sed/g; }'  package/lean/default-settings/files/zzz-default-settings
+
     - name: Download package
       id: package
       run: |
@@ -82,13 +88,15 @@ jobs:
         make download -j8
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
+        
     - name: Compile the firmware
       id: compile
       run: |
         cd openwrt
         echo -e "$(($(nproc) + 1)) thread compile"
         make -j$(($(nproc) + 1)) || make -j$(($(nproc) + 1)) || make -j1 V=s
-        echo "::set-output name=status::success"        
+        echo "::set-output name=status::success"       
+        
     - name: Check space usage
       if: (!cancelled())
       run: df -hT
@@ -105,6 +113,7 @@ jobs:
         bzip2 *.img
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "::set-output name=status::success"
+        
     - name: Upload bin directory
       uses: actions/upload-artifact@main
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true' && !cancelled()
@@ -119,20 +128,33 @@ jobs:
         name: lx64
         path: ${{ env.FIRMWARE }}
 
+    - name: Create release
+      uses: ncipollo/release-action@v1
+      if: env.UPLOAD_RELEASE == 'true' && steps.organize.outputs.status == 'success' && !cancelled()
+      with:
+        name: ${{ env.DATE }} 🚀 x64懒人版 | 自动编译
+        allowUpdates: true
+        tag: x64懒人版
+        commit: master
+        token: ${{ secrets.RELEASES_TOKEN }}
+        body: |
+          ${{ env.useVersionInfo }}
+        artifacts: ${{ env.FIRMWARE }}/*
+
     - name: Upload firmware to cowtransfer #奶牛快传
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
       run: |
         curl -fsSL git.io/file-transfer | sh
         ./transfer cow --block 2621440 -s -p 64 --no-progress ${{ env.FIRMWARE }} 2>&1 | tee cowtransfer.log
         echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
+        
     - name: Upload firmware to WeTransfer
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_WETRANSFER == 'true' && !cancelled()
       run: |
         curl -fsSL git.io/file-transfer | sh
         ./transfer wet -s -p 16 --no-progress ${{ env.FIRMWARE }} 2>&1 | tee wetransfer.log
         echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
-    
         
-    - name: wechat notification #微信通知 请根据自己的实际情况配置。
-      if:  steps.organize.outputs.status == 'success' && !cancelled()
-      run: curl "https://sctapi.ftqq.com/${{ secrets.ServerChan }}.send?text=恭喜主人，您的${{ env.FILE_NAME }}固件编译成功！"
+    - name: WeChat notification #微信推送
+      if: steps.organize.outputs.status == 'success' && !cancelled()
+      run: curl https://sctapi.ftqq.com/${{ secrets.ServerChan }}.send?text=${{ env.FILE_NAME }}发布成功-编译结束
