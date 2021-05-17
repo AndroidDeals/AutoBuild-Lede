@@ -106,12 +106,12 @@ jobs:
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "::set-output name=status::success"
         
-    - name: Upload bin directory
-      uses: actions/upload-artifact@main
-      if: steps.organize.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true' && !cancelled()
-      with:
-        name: OpenWrt-lx64
-        path: openwrt/bin/targets/x86/64/bin.tar.gz
+  #  - name: Upload bin directory
+    #   uses: actions/upload-artifact@main
+    #   if: steps.organize.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true' && !cancelled()
+     #  with:
+      #   name: OpenWrt-lx64
+      #   path: openwrt/bin/targets/x86/64/bin.tar.gz
 
     - name: Upload firmware directory
       uses: actions/upload-artifact@main
@@ -120,18 +120,6 @@ jobs:
         name: lx64
         path: ${{ env.FIRMWARE }}
 
-    - name: Create release
-      uses: ncipollo/release-action@v1
-      if: env.UPLOAD_RELEASE == 'true' && steps.organize.outputs.status == 'success' && !cancelled()
-      with:
-        name: ${{ env.DATE }} 🚀 x64懒人版 | 自动编译
-        allowUpdates: true
-        tag: x64懒人版
-        commit: master
-        token: ${{ secrets.RELEASES_TOKEN }}
-        body: |
-          ${{ env.useVersionInfo }}
-        artifacts: ${{ env.FIRMWARE }}/*
 
     - name: Upload firmware to cowtransfer #奶牛快传
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
