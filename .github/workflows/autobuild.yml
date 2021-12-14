@@ -69,6 +69,13 @@ jobs:
         rm -rf luci-theme-argon  
         git clone -b 18.06 https://github.com/jerrykuku/luci-theme-argon.git
         
+    - name: Jerrykuku source code
+      run: |
+        mkdir -p package/luci-app-diskman && \
+        wget https://raw.githubusercontent.com/lisaac/luci-app-diskman/master/applications/luci-app-diskman/Makefile -O package/luci-app-diskman/Makefile
+        mkdir -p package/parted && \
+        wget https://raw.githubusercontent.com/lisaac/luci-app-diskman/master/Parted.Makefile -O package/parted/Makefile
+
     - name: Load custom configuration
       run: |
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
