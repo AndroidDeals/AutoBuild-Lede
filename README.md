@@ -4,7 +4,7 @@
 
 
 
-选用的插件在 `diy.config`中，可以自己根据需要修改。
+选用的插件在 `.config`中，可以自己根据需要修改。
 
 主要插件有`vssr` `Aria2` `UnblockNeteaseMusic`,另外有一个第三方的`Argon主题`。
 
