@@ -57,7 +57,7 @@ jobs:
     - name: Build_x86_64
       run: |
         cd "/home/runner/openwrt"
-        cp -f "${GITHUB_WORKSPACE}/.config" ".config"
+        cp -f "${GITHUB_WORKSPACE}/configs/x86_64.config" ".config"
         chmod +x ./customize.sh && ./customize.sh
         make defconfig
         make -j$[$(nproc)+1]
