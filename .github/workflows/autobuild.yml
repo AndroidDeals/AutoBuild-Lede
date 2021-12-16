@@ -1,29 +1,27 @@
-name: X86_64固件
+name: Build x86_64 OpenWrt
 
-on: 
-  release:
-    types: [published]
-  # push:
-  #  branches: 
-  #    - master
-  # schedule:
-  #  - cron: 0 0 */11 * *
-  watch:
-    types: [started] #每点一次小星星开始编译
+on:
+  repository_dispatch:
+  workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'SSH connection to Actions'
+        required: false
+        default: 'false'
 
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
-  CONFIG_FILE: .config
+  FEEDS_CONF: feeds.conf.default
+  CONFIG_FILE: x86_64.config
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
-  UPLOAD_BIN_DIR: true
-  UPLOAD_FIRMWARE: false
-  UPLOAD_RELEASE: true
-  UPLOAD_WETRANSFER: true
+  UPLOAD_BIN_DIR: false
+  UPLOAD_FIRMWARE: true
   UPLOAD_COWTRANSFER: true
+  UPLOAD_WETRANSFER: false
+  UPLOAD_RELEASE: false
   TZ: Asia/Shanghai
-  FILE_NAME: x64懒人版
 
 jobs:
   build:
@@ -45,35 +43,23 @@ jobs:
         sudo timedatectl set-timezone "$TZ"
         sudo mkdir -p /workdir
         sudo chown $USER:$GROUPS /workdir
-        
     - name: Clone source code
       working-directory: /workdir
       run: |
         df -hT $PWD
         git clone $REPO_URL -b $REPO_BRANCH openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
-        
-   # - name: Jerrykuku source code
-    #  run: |
-    #    cd openwrt/package/lean  
-    #    git clone https://github.com/jerrykuku/lua-maxminddb.git  #git lua-maxminddb 依赖
-    #    git clone https://github.com/jerrykuku/luci-app-vssr.git 
-     #   rm -rf luci-theme-argon  
-     #   git clone -b 18.06 https://github.com/jerrykuku/luci-theme-argon.git      
-              
     - name: Load custom feeds
       run: |
         [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
         chmod +x $DIY_P1_SH
         cd openwrt
         $GITHUB_WORKSPACE/$DIY_P1_SH
-        
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
 
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
-      
 
     - name: Load custom configuration
       run: |
@@ -81,8 +67,14 @@ jobs:
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
         chmod +x $DIY_P2_SH
         cd openwrt
-        $GITHUB_WORKSPACE/$DIY_P2_SH 
-        
+        $GITHUB_WORKSPACE/$DIY_P2_SH
+    - name: SSH connection to Actions
+      uses: P3TERX/ssh2actions@v1.0.0
+      if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
+      env:
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+
     - name: Download package
       id: package
       run: |
@@ -91,7 +83,7 @@ jobs:
         make download -j8
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
-        
+   
     - name: Compile the firmware
       id: compile
       run: |
