@@ -66,6 +66,13 @@ jobs:
         ./scripts/feeds install -a
         ./scripts/feeds install -a
         
+    - name: Import external feeds
+      working-directory: ./openwrt
+      run: |
+        git clone https://github.com/vernesong/OpenClash package/openclash
+        git clone https://github.com/frainzy1477/luci-app-clash package/clash
+       # git clone 其他github插件源码地址 package/文件夹名称 
+        
     - name: Configuration Customization - Build_x86_64
       env:
         CONFIG_FILE: 'x86_64.config'
